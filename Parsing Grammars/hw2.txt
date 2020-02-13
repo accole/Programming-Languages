@@ -1,0 +1,51 @@
+     (* Question 7 Report *)
+
+I wrote make_matcher as a recursive function that matched fragments with
+acceptors in the following style:  I wrote an outer recursive function
+which at a high level accepted a set of Nonterminal rules and called a
+inner recursive function that parsed through each subrule, checking for
+a type match with the fragment frag.  If a subrule had a nonterminal in
+it, the inner recursive function had to call the outer one to jump to
+this next nonterminal's set of rules.  This was a restriction that forced
+me to define the two functions within each other, and made my recursive
+functions appear more complicated.  If a subrule had a terminal symbol,
+I just had to recursively call the inner function on the remainder of
+my fragment and remainder of the the subrule.
+
+On the other hand, make_parser is inherently a 2 step process.  First,
+constructing the path through the grammar that returns a correct parsing
+of the fragment.  I explain below how I reconstructed make_matcher to create
+this traversal path and ultimately remove duplicate code. Secondly, turning
+this path into a formatted parse tree structure.  I was able to write the code
+for the second part using the same high level traversal that I used in my
+recursive functions in make_matcher.  In this way, both of these recursive
+solutions follow similar structures, but this time the outer recursive function
+was responsible for taking a rule and calling an inner function to create its
+subtree, and in the end combining sibling trees together in a list, creating
+a parse tree from leaf to root.
+
+I wrote make_matcher first because it has the basic functionality of make_parser
+without the added complexity of keeping track of the structure of traversal
+and converting the structure into a tree.  I did not call make_parser in
+make_matcher and neither did I call make_matcher in make_parser, but I re-typed
+the same instructions I did in make_matcher in make_parser.  Since make_matcher
+traverses the grammar in the same way we want to in make_parser, I eliminated
+duplicate code by also passing in a higher order function to my parse_grammar
+function.  For question 3, I included higher order function q3 which simply
+returned the passed in value.  In this way, make_matcher only returns the
+value when a match has been made.  For make_parser, however, I needed to not
+only parse the grammar, but also record a traversal list of the encountered
+rules in the grammar, much like parse_tree_leaves does.  In this way, I passed
+in higher order function q4 into parse_grammar which concatenated the current
+rule to a list of traversed rules.  This is how I removed duplicity in my code.
+
+Both of these functions do not generalize to all grammars as stated in the spec.
+Since we wanted to traverse our parse_trees and grammars in order, our matchers
+will match the first match that is made.  If the parser / matcher successfully
+matches with a nonterminal subrule, then it will not consider a later one
+which may be necessary to matching the entire fragment passed in.  This is the
+most apparent weakness in my parser / matcher design.  Furthermore, our grammars
+are incapable of handling recursive grammars.  An example of a recursive grammar
+would be:
+      | NP -> [[N Noun]]
+      | Noun -> [[N NP]]
